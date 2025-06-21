@@ -45,6 +45,8 @@ Task: {{{request}}}
 
 Generate a step-by-step guide for the task. The guide should consist of only workable, actionable steps. For each step, provide a concise summary (the 'step') and a detailed explanation ('details').
 
+The 'details' for each step should be very specific. If a step involves navigating a user interface (like a cloud console), provide a clear, breadcrumb-style path (e.g., "Navigate to Google Cloud Console > Cloud Run > Create Service"). Include any necessary commands or code snippets in markdown format within the details.
+
 Also, provide a list of potential errors the user might encounter during the entire process, along with their solutions.
 
 Format the output as a JSON object with two keys: 'guide' and 'errors'.
