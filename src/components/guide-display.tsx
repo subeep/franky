@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { ChevronRight } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -9,6 +10,20 @@ import {
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+
+const Breadcrumb = ({ path }: { path: string }) => {
+  const parts = path.split('>').map(p => p.trim());
+  return (
+    <div className="my-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-muted p-3 text-sm">
+      {parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+          <span className="text-muted-foreground">{part}</span>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 const FormattedDetails = ({ text }: { text: string }) => {
   const parts = text.split(/(\*\*.*?\*\*|`[^`]+`|```[^`]+```)/g);
@@ -30,7 +45,11 @@ const FormattedDetails = ({ text }: { text: string }) => {
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} className="font-semibold text-card-foreground">{part.slice(2, -2)}</strong>
+            const textInside = part.slice(2, -2);
+            if (textInside.includes('>') && textInside.split('>').length > 1) {
+                return <Breadcrumb key={i} path={textInside} />;
+            }
+            return <strong key={i} className="font-semibold text-card-foreground">{textInside}</strong>
         }
         return <span key={i}>{part}</span>;
       })}

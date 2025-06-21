@@ -1,10 +1,11 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Rocket, ShieldAlert } from 'lucide-react';
+import { Rocket, ShieldAlert, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,6 +51,20 @@ const FormSchema = z.object({
     }),
 });
 
+const Breadcrumb = ({ path }: { path: string }) => {
+    const parts = path.split('>').map(p => p.trim());
+    return (
+      <div className="my-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-muted p-2 text-sm">
+        {parts.map((part, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+            <span className="text-muted-foreground">{part}</span>
+          </React.Fragment>
+        ))}
+      </div>
+    );
+};
+
 const FormattedContent = ({ text }: { text: string }) => {
   const parts = text.split(/(\*\*.*?\*\*|`[^`]+`|```[^`]+```)/g);
   return (
@@ -70,7 +85,11 @@ const FormattedContent = ({ text }: { text: string }) => {
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+            const textInside = part.slice(2, -2);
+            if (textInside.includes('>') && textInside.split('>').length > 1) {
+                return <Breadcrumb key={i} path={textInside} />;
+            }
+            return <strong key={i} className="font-semibold text-foreground">{textInside}</strong>;
         }
         return <span key={i}>{part}</span>;
       })}

@@ -45,10 +45,12 @@ Task: {{{request}}}
 
 Generate a step-by-step guide for the task. The guide should consist of only workable, actionable steps. For each step, provide a concise summary (the 'step') and a detailed explanation ('details').
 
-The 'details' for each step should be very specific. If a step involves navigating a user interface (like a cloud console), provide a clear, breadcrumb-style path (e.g., "Navigate to **Google Cloud Console > Cloud Run > Create Service**"). Use markdown for formatting:
+The 'details' for each step should be very specific. When providing navigation instructions (e.g., "Go to GCP Console", "select Cloud Run", "under 'Service details'"), you MUST format them as a single breadcrumb path within bold markdown. For example: "Navigate to **Google Cloud Console > Cloud Run > Create Service**". Use the '>' character as a separator. This applies to any sequence of navigation or selection actions.
+
+Use markdown for other formatting:
 - Use \`code\` for single commands, file names, or short snippets.
 - Use \`\`\` for multi-line code blocks.
-- Use **bold** for emphasis on UI elements or important notes.
+- Use **bold** for emphasis on UI elements or important notes that are NOT part of a navigation path.
 
 Also, provide a list of potential errors the user might encounter during the entire process, along with their solutions, using the same markdown formatting.
 
