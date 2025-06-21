@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Rocket } from 'lucide-react';
+import { Rocket, ShieldAlert } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,13 +16,28 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Icons } from '@/components/icons';
 import { GuideDisplay } from '@/components/guide-display';
 import { GuideSkeleton } from '@/components/guide-skeleton';
 import { WelcomePlaceholder } from '@/components/welcome-placeholder';
-import { generateAndFormatGuide } from './actions';
+import { generateGuide } from './actions';
 import { useToast } from '@/hooks/use-toast';
+import type { GenerateDevopsGuideOutput } from '@/ai/flows/generate-devops-guide';
 
 const FormSchema = z.object({
   request: z
@@ -35,11 +50,37 @@ const FormSchema = z.object({
     }),
 });
 
+const FormattedContent = ({ text }: { text: string }) => {
+  const parts = text.split(/(`[^`]+`|```[^`]+```)/g);
+  return (
+    <div className="whitespace-pre-wrap text-sm text-muted-foreground">
+      {parts.map((part, i) => {
+        if (part.startsWith('```') && part.endsWith('```')) {
+          return (
+            <pre key={i} className="my-2 rounded-md bg-background p-3 font-mono text-xs">
+              <code>{part.slice(3, -3).trim()}</code>
+            </pre>
+          );
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return (
+            <code key={i} className="mx-0.5 rounded-sm bg-background px-1 py-0.5 font-mono text-xs">
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </div>
+  );
+};
+
+
 export default function Home() {
   const [isPending, startTransition] = useTransition();
-  const [guideTree, setGuideTree] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [guide, setGuide] = useState<GenerateDevopsGuideOutput['guide'] | null>(null);
+  const [errors, setErrors] = useState<GenerateDevopsGuideOutput['errors'] | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -51,46 +92,35 @@ export default function Home() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    setError(null);
-    setGuideTree(null);
-    setCompletedSteps(new Set());
+    setServerError(null);
+    setGuide(null);
+    setErrors(null);
     
     startTransition(async () => {
-      const result = await generateAndFormatGuide(data.request);
+      const result = await generateGuide(data.request);
       if (result.error) {
-        setError(result.error);
+        setServerError(result.error);
         toast({
           variant: 'destructive',
           title: 'Error',
           description: result.error,
         });
       } else {
-        setGuideTree(result.guideTree);
+        setGuide(result.guide);
+        setErrors(result.errors);
       }
     });
   }
-
-  const handleStepToggle = (stepId: string) => {
-    setCompletedSteps((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(stepId)) {
-        newSet.delete(stepId);
-      } else {
-        newSet.add(stepId);
-      }
-      return newSet;
-    });
-  };
 
   return (
     <main className="container mx-auto max-w-4xl py-12 px-4">
       <header className="text-center">
         <Icons.logo className="h-12 w-12 mx-auto mb-4 text-primary" />
         <h1 className="text-4xl font-bold font-headline tracking-tight lg:text-5xl">
-          DevOps Guide
+          franky
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Enter a DevOps task below, and our AI will generate a step-by-step
+          Enter a DevOps task below, and I'll generate a step-by-step
           guide for you.
         </p>
       </header>
@@ -136,20 +166,47 @@ export default function Home() {
 
       <section className="mt-12 min-h-[300px] rounded-lg border bg-card p-6 shadow-sm">
         {isPending && <GuideSkeleton />}
-        {error && !isPending && (
+        {serverError && !isPending && (
            <Alert variant="destructive">
             <AlertTitle>Error Generating Guide</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{serverError}</AlertDescription>
           </Alert>
         )}
-        {!isPending && !error && guideTree && (
-          <GuideDisplay
-            tree={guideTree}
-            completedSteps={completedSteps}
-            onStepToggle={handleStepToggle}
-          />
+        {!isPending && !serverError && guide && (
+          <>
+            <GuideDisplay guide={guide} />
+            {errors && errors.length > 0 && (
+              <div className="mt-6 text-center">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <ShieldAlert className="mr-2 h-4 w-4" />
+                      View Potential Errors
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Potential Errors & Solutions</DialogTitle>
+                    </DialogHeader>
+                    <Accordion type="single" collapsible className="w-full">
+                       {errors.map((item, index) => (
+                        <AccordionItem value={`item-${index}`} key={index}>
+                          <AccordionTrigger className="text-left text-base hover:no-underline">
+                            {item.error}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <FormattedContent text={item.solution} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+          </>
         )}
-        {!isPending && !error && !guideTree && <WelcomePlaceholder />}
+        {!isPending && !serverError && !guide && <WelcomePlaceholder />}
       </section>
 
       <footer className="mt-12 text-center text-sm text-muted-foreground">

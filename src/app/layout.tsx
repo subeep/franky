@@ -16,8 +16,8 @@ const fontHeadline = Space_Grotesk({
 
 
 export const metadata: Metadata = {
-  title: 'DevOps Guide',
-  description: 'AI-powered DevOps step-by-step guide generation.',
+  title: 'franky',
+  description: 'Your AI-powered DevOps assistant.',
 };
 
 export default function RootLayout({

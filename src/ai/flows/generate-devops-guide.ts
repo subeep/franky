@@ -15,8 +15,19 @@ const GenerateDevopsGuideInputSchema = z.object({
 });
 export type GenerateDevopsGuideInput = z.infer<typeof GenerateDevopsGuideInputSchema>;
 
+const GuideStepSchema = z.object({
+  step: z.string().describe('A single, actionable step in the guide. This should be a concise summary of the task.'),
+  details: z.string().describe('A detailed explanation of the step, including commands and code snippets if necessary. Format code snippets in markdown.'),
+});
+
+const PotentialErrorSchema = z.object({
+  error: z.string().describe('A potential error or issue that could occur during the process.'),
+  solution: z.string().describe('The solution or troubleshooting steps for the error. Format code snippets in markdown.'),
+});
+
 const GenerateDevopsGuideOutputSchema = z.object({
-  guide: z.string().describe('The generated step-by-step guide.'),
+  guide: z.array(GuideStepSchema).describe('The array of step-by-step instructions. Only include workable, actionable steps.'),
+  errors: z.array(PotentialErrorSchema).describe('A list of potential errors and their solutions for the entire process.'),
 });
 export type GenerateDevopsGuideOutput = z.infer<typeof GenerateDevopsGuideOutputSchema>;
 
@@ -28,11 +39,17 @@ const prompt = ai.definePrompt({
   name: 'generateDevopsGuidePrompt',
   input: {schema: GenerateDevopsGuideInputSchema},
   output: {schema: GenerateDevopsGuideOutputSchema},
-  prompt: `You are an expert DevOps engineer. Generate a step-by-step guide for the following task:
+  prompt: `You are an expert DevOps engineer named Franky. A user has requested a guide for a task.
 
-{{{request}}}
+Task: {{{request}}}
 
-Format the guide in a clear and concise manner. Each step should include actionable instructions.`,
+Generate a step-by-step guide for the task. The guide should consist of only workable, actionable steps. For each step, provide a concise summary (the 'step') and a detailed explanation ('details').
+
+Also, provide a list of potential errors the user might encounter during the entire process, along with their solutions.
+
+Format the output as a JSON object with two keys: 'guide' and 'errors'.
+- 'guide' should be an array of objects, where each object has 'step' and 'details' keys.
+- 'errors' should be an array of objects, where each object has 'error' and 'solution' keys.`,
 });
 
 const generateDevopsGuideFlow = ai.defineFlow(

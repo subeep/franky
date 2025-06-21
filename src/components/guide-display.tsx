@@ -1,64 +1,64 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
-interface GuideDisplayProps {
-  tree: string;
-  completedSteps: Set<string>;
-  onStepToggle: (stepId: string) => void;
-}
-
-type Step = {
-  id: string;
-  text: string;
-  level: number;
+const FormattedDetails = ({ text }: { text: string }) => {
+  const parts = text.split(/(`[^`]+`|```[^`]+```)/g);
+  return (
+    <p className="whitespace-pre-wrap text-base leading-relaxed">
+      {parts.map((part, i) => {
+        if (part.startsWith('```') && part.endsWith('```')) {
+          return (
+            <pre key={i} className="my-2 rounded-md bg-muted p-4 font-mono text-sm text-muted-foreground">
+              <code>{part.slice(3, -3).trim()}</code>
+            </pre>
+          );
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return (
+            <code key={i} className="mx-1 rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </p>
+  );
 };
 
-export function GuideDisplay({ tree, completedSteps, onStepToggle }: GuideDisplayProps) {
-  const steps = React.useMemo(() => {
-    if (!tree) return [];
-    return tree
-      .split('\n')
-      .filter((line) => line.trim() !== '')
-      .map((line, index) => {
-        const text = line.trim();
-        const indentation = line.length - line.trimStart().length;
-        const level = Math.floor(indentation / 2); // Assuming 2 spaces for indentation
-        return { id: `${index}-${text}`, text, level };
-      });
-  }, [tree]);
 
+interface GuideStep {
+  step: string;
+  details: string;
+}
+
+interface GuideDisplayProps {
+  guide: GuideStep[];
+}
+
+export function GuideDisplay({ guide }: GuideDisplayProps) {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold font-headline text-primary">Your Step-by-Step Guide</h2>
-      {steps.map((step) => (
-        <div
-          key={step.id}
-          className="flex items-start transition-colors duration-200 rounded-md p-2 hover:bg-muted/50"
-          style={{ paddingLeft: `${step.level * 2 + 0.5}rem` }}
-        >
-          <Checkbox
-            id={step.id}
-            checked={completedSteps.has(step.id)}
-            onCheckedChange={() => onStepToggle(step.id)}
-            className="mt-1 border-accent"
-            aria-label={`Mark step as complete: ${step.text}`}
-          />
-          <label
-            htmlFor={step.id}
-            className={cn(
-              'ml-3 text-base cursor-pointer',
-              completedSteps.has(step.id)
-                ? 'line-through text-muted-foreground'
-                : 'text-foreground'
-            )}
-          >
-            {step.text}
-          </label>
-        </div>
-      ))}
+      <Accordion type="single" collapsible className="w-full">
+        {guide.map((item, index) => (
+          <AccordionItem value={`item-${index}`} key={index}>
+            <AccordionTrigger className="text-left text-lg hover:no-underline">
+              {index + 1}. {item.step}
+            </AccordionTrigger>
+            <AccordionContent>
+              <FormattedDetails text={item.details} />
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 }
