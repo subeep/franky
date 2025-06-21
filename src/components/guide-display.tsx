@@ -28,13 +28,20 @@ const Breadcrumb = ({ path }: { path: string }) => {
 const FormattedDetails = ({ text }: { text: string }) => {
   const parts = text.split(/(\*\*.*?\*\*|`[^`]+`|```[^`]+```)/g);
   return (
-    <div className="whitespace-pre-wrap text-base leading-relaxed text-card-foreground/90">
+    <div className="text-base leading-relaxed text-card-foreground/90">
       {parts.map((part, i) => {
         if (part.startsWith('```') && part.endsWith('```')) {
           return (
-            <pre key={i} className="my-3 rounded-md bg-gray-900 p-4 font-mono text-sm text-gray-200 overflow-x-auto">
-              <code>{part.slice(3, -3).trim()}</code>
-            </pre>
+            <div key={i} className="my-4 rounded-lg bg-gray-950 shadow-lg">
+              <div className="flex items-center gap-1.5 rounded-t-lg bg-gray-800 px-4 py-2">
+                <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+              </div>
+              <pre className="overflow-x-auto p-4 font-mono text-sm text-gray-200">
+                <code>{part.slice(3, -3).trim()}</code>
+              </pre>
+            </div>
           );
         }
         if (part.startsWith('`') && part.endsWith('`')) {
@@ -51,7 +58,21 @@ const FormattedDetails = ({ text }: { text: string }) => {
             }
             return <strong key={i} className="font-semibold text-card-foreground">{textInside}</strong>
         }
-        return <span key={i}>{part}</span>;
+        return (
+          <span key={i} className="whitespace-pre-wrap">
+            {part.split(/(\n- .*)/g).filter(Boolean).map((textChunk, j) => {
+              if (textChunk.startsWith('\n- ')) {
+                return (
+                  <div key={`${i}-${j}`} className="flex items-start py-1">
+                    <span className="mr-3 mt-2 text-lg leading-none text-primary">•</span>
+                    <span className="flex-1">{textChunk.substring(3)}</span>
+                  </div>
+                )
+              }
+              return <span key={`${i}-${j}`}>{textChunk}</span>;
+            })}
+          </span>
+        );
       })}
     </div>
   );

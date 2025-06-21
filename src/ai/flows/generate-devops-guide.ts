@@ -17,12 +17,12 @@ export type GenerateDevopsGuideInput = z.infer<typeof GenerateDevopsGuideInputSc
 
 const GuideStepSchema = z.object({
   step: z.string().describe('A single, actionable step in the guide. This should be a concise summary of the task.'),
-  details: z.string().describe('A detailed explanation of the step, including commands and code snippets if necessary. Format text using markdown: **bold** for emphasis, `code` for snippets.'),
+  details: z.string().describe('A detailed explanation of the step, including commands and code snippets if necessary. Format text using markdown: **bold** for emphasis, `code` for snippets, and `- ` for bullet points.'),
 });
 
 const PotentialErrorSchema = z.object({
   error: z.string().describe('A potential error or issue that could occur during the process.'),
-  solution: z.string().describe('The solution or troubleshooting steps for the error. Format text using markdown: **bold** for emphasis, `code` for snippets.'),
+  solution: z.string().describe('The solution or troubleshooting steps for the error. Format text using markdown: **bold** for emphasis, `code` for snippets, and `- ` for bullet points.'),
 });
 
 const GenerateDevopsGuideOutputSchema = z.object({
@@ -48,6 +48,7 @@ Generate a step-by-step guide for the task. The guide should consist of only wor
 The 'details' for each step should be very specific. When providing navigation instructions (e.g., "Go to GCP Console", "select Cloud Run", "under 'Service details'"), you MUST format them as a single breadcrumb path within bold markdown. For example: "Navigate to **Google Cloud Console > Cloud Run > Create Service**". Use the '>' character as a separator. This applies to any sequence of navigation or selection actions.
 
 Use markdown for other formatting:
+- Use bullet points (starting with \`- \`) for lists or sequences of actions within 'details' and 'solutions'. Avoid long paragraphs.
 - Use \`code\` for single commands, file names, or short snippets.
 - Use \`\`\` for multi-line code blocks.
 - Use **bold** for emphasis on UI elements or important notes that are NOT part of a navigation path.
