@@ -17,12 +17,12 @@ export type GenerateDevopsGuideInput = z.infer<typeof GenerateDevopsGuideInputSc
 
 const GuideStepSchema = z.object({
   step: z.string().describe('A single, actionable step in the guide. This should be a concise summary of the task.'),
-  details: z.string().describe('A detailed explanation of the step, including commands and code snippets if necessary. Format code snippets in markdown.'),
+  details: z.string().describe('A detailed explanation of the step, including commands and code snippets if necessary. Format text using markdown: **bold** for emphasis, `code` for snippets.'),
 });
 
 const PotentialErrorSchema = z.object({
   error: z.string().describe('A potential error or issue that could occur during the process.'),
-  solution: z.string().describe('The solution or troubleshooting steps for the error. Format code snippets in markdown.'),
+  solution: z.string().describe('The solution or troubleshooting steps for the error. Format text using markdown: **bold** for emphasis, `code` for snippets.'),
 });
 
 const GenerateDevopsGuideOutputSchema = z.object({
@@ -45,9 +45,12 @@ Task: {{{request}}}
 
 Generate a step-by-step guide for the task. The guide should consist of only workable, actionable steps. For each step, provide a concise summary (the 'step') and a detailed explanation ('details').
 
-The 'details' for each step should be very specific. If a step involves navigating a user interface (like a cloud console), provide a clear, breadcrumb-style path (e.g., "Navigate to Google Cloud Console > Cloud Run > Create Service"). Include any necessary commands or code snippets in markdown format within the details.
+The 'details' for each step should be very specific. If a step involves navigating a user interface (like a cloud console), provide a clear, breadcrumb-style path (e.g., "Navigate to **Google Cloud Console > Cloud Run > Create Service**"). Use markdown for formatting:
+- Use \`code\` for single commands, file names, or short snippets.
+- Use \`\`\` for multi-line code blocks.
+- Use **bold** for emphasis on UI elements or important notes.
 
-Also, provide a list of potential errors the user might encounter during the entire process, along with their solutions.
+Also, provide a list of potential errors the user might encounter during the entire process, along with their solutions, using the same markdown formatting.
 
 Format the output as a JSON object with two keys: 'guide' and 'errors'.
 - 'guide' should be an array of objects, where each object has 'step' and 'details' keys.

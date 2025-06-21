@@ -51,23 +51,26 @@ const FormSchema = z.object({
 });
 
 const FormattedContent = ({ text }: { text: string }) => {
-  const parts = text.split(/(`[^`]+`|```[^`]+```)/g);
+  const parts = text.split(/(\*\*.*?\*\*|`[^`]+`|```[^`]+```)/g);
   return (
     <div className="whitespace-pre-wrap text-sm text-muted-foreground">
       {parts.map((part, i) => {
         if (part.startsWith('```') && part.endsWith('```')) {
           return (
-            <pre key={i} className="my-2 rounded-md bg-background p-3 font-mono text-xs">
+            <pre key={i} className="my-2 rounded-md bg-gray-900 p-3 font-mono text-xs text-gray-200 overflow-x-auto">
               <code>{part.slice(3, -3).trim()}</code>
             </pre>
           );
         }
         if (part.startsWith('`') && part.endsWith('`')) {
           return (
-            <code key={i} className="mx-0.5 rounded-sm bg-background px-1 py-0.5 font-mono text-xs">
+            <code key={i} className="mx-0.5 rounded-sm bg-gray-700/50 px-1 py-0.5 font-mono text-xs">
               {part.slice(1, -1)}
             </code>
           );
+        }
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
         }
         return <span key={i}>{part}</span>;
       })}
