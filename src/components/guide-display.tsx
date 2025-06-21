@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion';
+import * as AccordionPrimitive from "@radix-ui/react-accordion"
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
@@ -105,29 +105,30 @@ export function GuideDisplay({ guide }: GuideDisplayProps) {
           const isCompleted = completedSteps.includes(index);
           return (
             <AccordionItem value={`item-${index}`} key={index}>
-              <AccordionTrigger 
-                className={cn(
-                  "text-left text-lg hover:no-underline",
-                  isCompleted && "text-muted-foreground"
-                )}
-              >
-                <div className="flex items-center gap-4 w-full">
+              <AccordionPrimitive.Header className="flex w-full items-center">
+                <div className="py-4 pl-4">
                   <Checkbox
                     id={`step-${index}`}
                     checked={isCompleted}
                     onCheckedChange={() => toggleStep(index)}
-                    onClick={(e) => e.stopPropagation()}
                     className="h-5 w-5 rounded-md"
                   />
+                </div>
+                <AccordionPrimitive.Trigger
+                  className={cn(
+                    "flex flex-1 items-center justify-between py-4 pr-4 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180",
+                  )}
+                >
                   <span className={cn(
-                      "flex-1 text-left",
-                      isCompleted && "line-through"
+                      "flex-1 text-left text-lg pl-2",
+                      isCompleted ? "text-muted-foreground line-through" : ""
                   )}>
                     {index + 1}. {item.step}
                   </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pl-9">
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionContent className="pl-16">
                 <FormattedDetails text={item.details} />
               </AccordionContent>
             </AccordionItem>
